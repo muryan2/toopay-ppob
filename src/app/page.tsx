@@ -1,66 +1,50 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+// src/app/page.tsx
 
-export default function Home() {
+import React from 'react';
+
+// Ini adalah komponen utama (Halaman Utama)
+export default function HomePage() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+      <h1>Aplikasi PPOB Toopay</h1>
+      <p>Selamat datang! Silakan masukkan nomor pelanggan dan pilih produk di bawah ini.</p>
+      
+      {/* Container untuk Formulir Utama */}
+      <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
+        <h2>Formulir Transaksi</h2>
+        
+        <label htmlFor="customerNo" style={{ display: 'block', marginTop: '15px' }}>Nomor Pelanggan/HP:</label>
+        <input 
+          type="text" 
+          id="customerNo" 
+          style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd' }}
+          placeholder="Masukkan nomor pelanggan atau HP"
         />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        <label htmlFor="productSelect" style={{ display: 'block', marginTop: '15px' }}>Pilih Produk:</label>
+        <select 
+          id="productSelect" 
+          style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd' }}
+        >
+          <option value="">-- Pilih Produk --</option>
+          <option value="data">Paket Data</option>
+          <option value="pulsa">Pulsa Reguler</option>
+        </select>
+
+        <button 
+          style={{ 
+            marginTop: '20px', 
+            padding: '10px 20px', 
+            backgroundColor: '#0070f3', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px', 
+            cursor: 'pointer' 
+          }}
+        >
+          Proses Transaksi
+        </button>
+      </div>
     </div>
   );
 }
