@@ -16,7 +16,7 @@ const createSign = (username: string, apiKey: string): string => {
 };
 
 // Menggunakan GET untuk debugging cepat via browser
-export async function GET(request: NextRequest) { 
+export async function POST(request: NextRequest) { 
     
     // 1. Validasi Kunci
     if (!USERNAME || !API_KEY) {
