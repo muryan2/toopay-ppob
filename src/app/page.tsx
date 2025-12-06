@@ -22,13 +22,21 @@ export default function HomePage() {
     setError(null);
     try {
       // Panggil endpoint API Next.js Anda sendiri
-      const response = await fetch('/api/price-list');
+      // PERBAIKAN: Tambahkan method: 'POST' dan headers
+      const response = await fetch('/api/price-list', {
+          method: 'POST', // <-- DIGANTI DARI DEFAULT GET MENJADI POST
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          // Body tidak diperlukan karena data permintaan dikelola di backend (route.ts)
+      });
       const data = await response.json();
 
       if (data.status === 'success') {
         // Asumsi data.products berisi array produk Digiflazz
         setProducts(data.products || []); 
       } else {
+        // Jika ada limitasi (seperti error 081129), akan ditampilkan di sini
         setError(data.message || 'Gagal memuat harga.');
         setProducts([]);
       }
