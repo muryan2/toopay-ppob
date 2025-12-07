@@ -4,11 +4,11 @@
 
 import React, { useState, useEffect } from 'react';
 
-// Catatan: Interface ini mungkin perlu disesuaikan jika nama properti Bukaolshop berbeda
+// Interface diperbarui agar sesuai dengan properti Bukaolshop:
 interface Product {
-  product_code: string; 
-  product_name: string; 
-  product_price: number; 
+  id_produk: string;        // ID Produk
+  nama_produk: string;      // Nama Produk
+  harga_produk: number;     // Harga Produk
 }
 
 
@@ -18,14 +18,14 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fungsi untuk mengambil daftar harga, kini memanggil PROXY API Vercel
+  // Fungsi untuk mengambil daftar harga, memanggil PROXY API Vercel
   const fetchPriceList = async () => {
     setIsLoading(true);
     setError(null);
     try {
       // Panggil endpoint PROXY API Vercel yang baru
       const response = await fetch('/api/bukaolshop-price-list', {
-          method: 'POST', // <-- Memanggil proxy Vercel dengan POST
+          method: 'POST', // Memanggil proxy Vercel
           headers: {
               'Content-Type': 'application/json',
           },
@@ -78,9 +78,10 @@ export default function HomePage() {
           disabled={isLoading || products.length === 0}
         >
           <option value="">-- Pilih Produk --</option>
+          {/* Perubahan properti di sini agar sesuai dengan Bukaolshop */}
           {products.map((product) => (
-            <option key={product.product_code} value={product.product_code}>
-              {product.product_name} - Rp{product.product_price.toLocaleString('id-ID')}
+            <option key={product.id_produk} value={product.id_produk}>
+              {product.nama_produk} - Rp{product.harga_produk.toLocaleString('id-ID')}
             </option>
           ))}
         </select>
