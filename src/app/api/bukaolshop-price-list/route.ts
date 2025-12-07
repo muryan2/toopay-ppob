@@ -2,28 +2,31 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// Ambil Token dari Environment Variables Vercel
-const BUKAOLSHOP_TOKEN = process.env.BUKAOLSHOP_API_TOKEN;
+// PENTING: Variabel ini HARUS diisi di Vercel Environment Variables.
+// Kita menggunakan nama variabel lama (DIGIFLAZZ_USERNAME)
+// untuk meningkatkan kompatibilitas, asalkan nilainya sudah diganti
+// dengan Token Open API Bukaolshop yang valid.
+const BUKAOLSHOP_TOKEN = process.env.DIGIFLAZZ_USERNAME; 
 const BUKAOLSHOP_API_URL = 'https://openapi.bukaolshop.net/v1/app/produk'; 
 
-// Karena frontend akan menggunakan method POST, kita gunakan POST di sini
 export async function POST(request: NextRequest) {
     
     // 1. Validasi Token di Server
     if (!BUKAOLSHOP_TOKEN) {
         return NextResponse.json({
             status: "error",
-            message: "Token Bukaolshop belum dikonfigurasi di server.",
+            message: "Token Bukaolshop belum dikonfigurasi di server Vercel.",
         }, { status: 500 });
     }
 
-    // 2. Siapkan URL dengan Token (Metode GET ke Bukaolshop)
-    const finalUrl = `${BUKAOLSHOP_API_URL}?token=${BUKAOLSHOP_TOKEN}`;
+    // 2. Siapkan URL dengan Token (Permintaan GET ke Bukaolshop)
+    // Kita juga tambahkan page=1 untuk memastikan data terambil
+    const finalUrl = `${BUKAOLSHOP_API_URL}?token=${BUKAOLSHOP_TOKEN}&page=1`;
     
     // 3. Kirim Permintaan ke Open API Bukaolshop
     try {
         const bsResponse = await fetch(finalUrl, {
-            method: 'GET', // <-- PENTING: Bukaolshop meminta GET
+            method: 'GET', // Sesuai dokumentasi Open API Bukaolshop
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -32,25 +35,26 @@ export async function POST(request: NextRequest) {
         const result = await bsResponse.json();
         
         // 4. Proses Respon dari Bukaolshop
-        if (result && result.code === 200 && result.status === 'success') {
-            // Sukses: Kirim data produk Bukaolshop kembali ke frontend Vercel
+        // Cek kode 200 dan status 'ok' (sesuai contoh respons Bukaolshop)
+        if (result && result.code === 200 && result.status === 'ok') { 
+            // Sukses: Kirim data produk. Struktur data Bukaolshop adalah array di properti 'data'.
             return NextResponse.json({
                 status: "success",
-                products: result.data.products // Sesuaikan jika struktur Bukaolshop berbeda
+                products: result.data // Mengambil array produk dari result.data
             });
         }
 
-        // Gagal: Respon dari Bukaolshop menunjukkan error
+        // Gagal: Respon dari Bukaolshop menunjukkan error (misalnya token salah)
         return NextResponse.json({
             status: "error",
-            message: result.message || "Gagal memuat harga dari Bukaolshop.",
+            message: result.message || "Gagal memuat harga dari Bukaolshop. (Periksa Token Open API)",
         }, { status: 400 });
 
     } catch (e) {
         console.error("Error fetching price list:", e);
         return NextResponse.json({
             status: "error",
-            message: "Gagal terhubung ke API Proxy Bukaolshop."
+            message: "Gagal terhubung ke API Proxy Bukaolshop (Network Error)."
         }, { status: 500 });
     }
 }
