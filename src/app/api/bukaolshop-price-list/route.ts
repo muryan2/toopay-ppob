@@ -2,10 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// PENTING: Variabel ini HARUS diisi di Vercel Environment Variables.
-// Kita menggunakan nama variabel lama (DIGIFLAZZ_USERNAME)
-// untuk meningkatkan kompatibilitas, asalkan nilainya sudah diganti
-// dengan Token Open API Bukaolshop yang valid.
+// Menggunakan EV DIGIFLAZZ_USERNAME sebagai Token Bukaolshop
 const BUKAOLSHOP_TOKEN = process.env.DIGIFLAZZ_USERNAME; 
 const BUKAOLSHOP_API_URL = 'https://openapi.bukaolshop.net/v1/app/produk'; 
 
@@ -19,14 +16,14 @@ export async function POST(request: NextRequest) {
         }, { status: 500 });
     }
 
-    // 2. Siapkan URL dengan Token (Permintaan GET ke Bukaolshop)
-    // Kita juga tambahkan page=1 untuk memastikan data terambil
-    const finalUrl = `${BUKAOLSHOP_API_URL}?token=${BUKAOLSHOP_TOKEN}&page=1`;
+    // 2. Siapkan URL dengan Token dan Page=1. (TIDAK ADA total_data=100)
+    // Dibiarkan default 10 data Bukaolshop atau diubah menjadi total_data=200 jika diperlukan
+    const finalUrl = `${BUKAOLSHOP_API_URL}?token=${BUKAOLSHOP_TOKEN}&page=1`; // Kembali ke default 10 data
     
     // 3. Kirim Permintaan ke Open API Bukaolshop
     try {
         const bsResponse = await fetch(finalUrl, {
-            method: 'GET', // Sesuai dokumentasi Open API Bukaolshop
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -35,16 +32,13 @@ export async function POST(request: NextRequest) {
         const result = await bsResponse.json();
         
         // 4. Proses Respon dari Bukaolshop
-        // Cek kode 200 dan status 'ok' (sesuai contoh respons Bukaolshop)
         if (result && result.code === 200 && result.status === 'ok') { 
-            // Sukses: Kirim data produk. Struktur data Bukaolshop adalah array di properti 'data'.
             return NextResponse.json({
                 status: "success",
-                products: result.data // Mengambil array produk dari result.data
+                products: result.data 
             });
         }
 
-        // Gagal: Respon dari Bukaolshop menunjukkan error (misalnya token salah)
         return NextResponse.json({
             status: "error",
             message: result.message || "Gagal memuat harga dari Bukaolshop. (Periksa Token Open API)",
