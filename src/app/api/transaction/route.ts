@@ -4,9 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Menggunakan EV yang sama untuk Token Bukaolshop
 const BUKAOLSHOP_TOKEN = process.env.DIGIFLAZZ_USERNAME; 
-// Endpoint Transaksi Bukaolshop (Asumsi)
+// Endpoint Transaksi Bukaolshop (Asumsi POST)
 const BUKAOLSHOP_TRANSACTION_URL = 'https://openapi.bukaolshop.net/v1/app/proses-transaksi'; 
-// CATATAN: URL transaksi ini harus Anda konfirmasi dari dokumentasi Bukaolshop.
 
 export async function POST(request: NextRequest) {
     
@@ -28,33 +27,38 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
     }
 
-    // 3. Siapkan Payload untuk Bukaolshop (Metode POST ke Bukaolshop)
+    // 3. Siapkan Payload untuk Bukaolshop
+    // CATATAN: Pastikan nama parameter cocok dengan dokumentasi Bukaolshop
     const payload = {
         token: BUKAOLSHOP_TOKEN,
         id_produk: product_id,
-        // Asumsi Bukaolshop menggunakan parameter 'nomor_tujuan' atau 'customer_id'
-        // Anda mungkin perlu menyesuaikan nama parameter di bawah ini
         nomor_tujuan: customerNumber, 
-        
-        // PENTING: Bukaolshop mungkin memerlukan URL Callback/Webhook di sini
-        // Sesuaikan dengan dokumentasi Bukaolshop!
     };
     
     // 4. Kirim Permintaan Transaksi ke Open API Bukaolshop
     try {
         const bsResponse = await fetch(BUKAOLSHOP_TRANSACTION_URL, {
-            method: 'POST', // Asumsi Bukaolshop menggunakan POST untuk transaksi
+            method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload)
         });
 
-        const result = await bsResponse.json();
+        // Jika respons bukan JSON atau ada masalah di koneksi, ini mungkin gagal
+        if (!bsResponse.ok) {
+            // Tangani status non-200 dari Bukaolshop (misalnya 401, 500)
+             const errorResult = await bsResponse.json();
+             return NextResponse.json({
+                 status: "error",
+                 message: errorResult.message || `API Bukaolshop menolak permintaan dengan status ${bsResponse.status}.`,
+             }, { status: bsResponse.status });
+        }
         
-        // 5. Proses Respon dari Bukaolshop
+        const result = await bsResponse.json();
+
+        // 5. Proses Respon Sukses dari Bukaolshop
         if (result && result.code === 200 && result.status === 'ok') {
-            // Transaksi Sukses
             return NextResponse.json({
                 status: "success",
                 message: "Transaksi berhasil diproses.",
@@ -62,7 +66,7 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Transaksi Gagal (Token salah atau data Bukaolshop menolak)
+        // Transaksi Gagal (Namun status HTTP-nya 200)
         return NextResponse.json({
             status: "error",
             message: result.message || "Transaksi gagal diproses oleh Bukaolshop.",
@@ -70,9 +74,10 @@ export async function POST(request: NextRequest) {
 
     } catch (e) {
         console.error("Error during transaction:", e);
+        // Error koneksi akan tertangkap di sini
         return NextResponse.json({
             status: "error",
-            message: "Gagal terhubung ke API Proxy Transaksi."
+            message: "Gagal terhubung ke API Proxy Transaksi (Periksa URL atau Koneksi Server).",
         }, { status: 500 });
     }
 }
