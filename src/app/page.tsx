@@ -2,56 +2,89 @@
 
 'use client'; 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import styles from './page.module.css'; // IMPOR CSS MODULE BARU
 
-// Interface diperbarui agar sesuai dengan properti Bukaolshop:
+// Interface Produk
 interface Product {
-  id_produk: string;        // ID Produk (Contoh: "2046567")
-  nama_produk: string;      // Nama Produk (Contoh: "pulsa telkom 20rb")
-  harga_produk: number;     // Harga Produk (Contoh: 21000)
+  id_produk: string;        
+  nama_produk: string;      
+  harga_produk: number;     
 }
+
+// Data Prefix sederhana untuk contoh
+const PREFIX_MAP = {
+  '0812': 'Telkomsel',
+  '0813': 'Telkomsel',
+  '0852': 'Telkomsel',
+  '0853': 'Telkomsel',
+  '0815': 'Indosat',
+  '0816': 'Indosat',
+  '0896': 'Tri',
+  '0899': 'Tri',
+  // WAJIB: Tambahkan lebih banyak prefix di sini!
+};
+
+// Fungsi untuk menentukan operator berdasarkan prefix
+const getOperator = (number: string) => {
+    if (number.length < 4) return null;
+    const prefix = number.substring(0, 4);
+    return PREFIX_MAP[prefix] || null;
+};
 
 
 export default function HomePage() {
   const [customerNumber, setCustomerNumber] = useState('');
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<string>(''); 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transactionMessage, setTransactionMessage] = useState<string | null>(null); 
+  
+  // LOGIC FILTRASI PREFIX (useMemo)
+  const filteredProducts = useMemo(() => {
+    const operator = getOperator(customerNumber);
 
-  // Fungsi untuk mengambil daftar harga, memanggil PROXY API Vercel
+    if (customerNumber.length < 4 || !operator) {
+        // Tampilkan semua produk jika nomor belum terdeteksi/lengkap
+        // Note: Anda bisa mengubah ini menjadi 'return []' agar dropdown kosong saat nomor belum dimasukkan
+        return allProducts; 
+    }
+
+    // Filter produk yang mengandung nama operator (case-insensitive)
+    return allProducts.filter(p => 
+      p.nama_produk.toLowerCase().includes(operator.toLowerCase())
+    );
+  }, [customerNumber, allProducts]);
+
+
   const fetchPriceList = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Panggil endpoint PROXY API Vercel untuk Price List
       const response = await fetch('/api/bukaolshop-price-list', {
           method: 'POST', 
-          headers: {
-              'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
       });
       const data = await response.json();
 
       if (data.status === 'success') {
-        setProducts(data.products || []); 
+        setAllProducts(data.products || []); 
       } else {
         setError(data.message || 'Gagal memuat harga.');
-        setProducts([]);
+        setAllProducts([]);
       }
     } catch (err) {
       setError('Gagal terhubung ke server proxy harga.');
-      setProducts([]);
+      setAllProducts([]);
     } finally {
       setIsLoading(false);
     }
   };
 
 
-  // Fungsi untuk memproses transaksi
   const handleTransaction = async () => {
-    setTransactionMessage(null); // Reset pesan
+    setTransactionMessage(null); 
     
     if (!customerNumber || !selectedProduct) {
         setTransactionMessage("Mohon lengkapi Nomor Pelanggan dan Pilih Produk.");
@@ -60,7 +93,7 @@ export default function HomePage() {
 
     setIsLoading(true);
     try {
-        const response = await fetch('/api/transaction', { // Panggil endpoint proxy transaksi Vercel
+        const response = await fetch('/api/transaction', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -73,7 +106,6 @@ export default function HomePage() {
 
         if (data.status === 'success') {
             setTransactionMessage(`✅ SUCCESS! ${data.message}`);
-            // Kosongkan form setelah sukses (opsional)
             setCustomerNumber(''); 
             setSelectedProduct(''); 
         } else {
@@ -88,7 +120,6 @@ export default function HomePage() {
 
 
   useEffect(() => {
-    // Panggil saat komponen pertama kali dimuat
     fetchPriceList(); 
   }, []); 
 
@@ -97,51 +128,56 @@ export default function HomePage() {
     ? 'Memuat...' 
     : error 
       ? `Error: ${error}` 
-      : 'Berhasil dimuat!';
+      : `Berhasil dimuat! (${allProducts.length} Produk Total)`;
 
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <h1>Aplikasi PPOB Toopay</h1>
-      <p>Status Harga: **{priceStatusText}**</p>
+    <div className={styles.container}>
+      <h1 className={styles.header}>Aplikasi PPOB Toopay</h1>
+      <p>
+        Status Harga: 
+        <span className={error ? styles.statusError : styles.statusSuccess}>
+          {priceStatusText}
+        </span>
+      </p>
       
       {/* Tampilkan pesan transaksi (SUCCESS/GAGAL) */}
       {transactionMessage && ( 
-          <div style={{ 
-              padding: '10px', 
-              marginTop: '10px', 
-              color: transactionMessage.includes('SUCCESS') ? 'green' : 'red', 
-              border: `1px solid ${transactionMessage.includes('SUCCESS') ? 'green' : 'red'}`,
-              backgroundColor: transactionMessage.includes('SUCCESS') ? '#e6ffe6' : '#ffe6e6',
-              borderRadius: '4px'
-          }}>
+          <div className={`${styles.message} ${transactionMessage.includes('SUCCESS') ? styles.messageSuccess : styles.messageFailure}`}>
               {transactionMessage}
           </div>
       )}
 
-      <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
+      <div className={styles.formCard}>
         <h2>Formulir Transaksi</h2>
         
-        <label htmlFor="customerNo" style={{ display: 'block', marginTop: '15px' }}>Nomor Pelanggan/HP:</label>
+        <label htmlFor="customerNo" className={styles.label}>Nomor Pelanggan/HP:</label>
         <input 
           type="text" 
           id="customerNo" 
-          style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd' }}
+          className={styles.input}
           placeholder="Masukkan nomor pelanggan atau HP"
           value={customerNumber}
-          onChange={(e) => setCustomerNumber(e.target.value)}
+          onChange={(e) => setCustomerNumber(e.target.value)} 
         />
+        {/* Tampilkan deteksi operator */}
+        {customerNumber.length >= 4 && (
+          <p className={styles.operatorInfo}>
+            Operator Terdeteksi: {getOperator(customerNumber) || "Tidak Dikenal"}
+          </p>
+        )}
 
-        <label htmlFor="productSelect" style={{ display: 'block', marginTop: '15px' }}>Pilih Produk:</label>
+        <label htmlFor="productSelect" className={styles.label}>Pilih Produk (Tampil: {filteredProducts.length}):</label>
         <select 
           id="productSelect" 
-          style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd' }}
-          disabled={isLoading || products.length === 0}
+          className={styles.select}
+          disabled={isLoading || allProducts.length === 0}
           value={selectedProduct} 
           onChange={(e) => setSelectedProduct(e.target.value)} 
         >
           <option value="">-- Pilih Produk --</option>
-          {products.map((product) => (
+          {/* Menggunakan filteredProducts untuk display */}
+          {filteredProducts.map((product) => (
             <option key={product.id_produk} value={product.id_produk}>
               {product.nama_produk} - Rp{product.harga_produk.toLocaleString('id-ID')}
             </option>
@@ -150,16 +186,8 @@ export default function HomePage() {
 
         <button 
           onClick={handleTransaction} 
-          style={{ 
-            marginTop: '20px', 
-            padding: '10px 20px', 
-            backgroundColor: '#0070f3', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px', 
-            cursor: 'pointer' 
-          }}
-          disabled={isLoading || products.length === 0}
+          className={styles.button}
+          disabled={isLoading || filteredProducts.length === 0 || customerNumber.length < 4}
         >
           {isLoading ? 'Memproses...' : 'Proses Transaksi'}
         </button>
