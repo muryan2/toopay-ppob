@@ -1,6 +1,4 @@
-// src/app/page.tsx
-
-'use client'; 
+// src/ap'use client'; 
 
 import React, { useState, useEffect, useMemo } from 'react';
 import styles from './page.module.css'; // IMPOR CSS MODULE BARU
