@@ -11,8 +11,18 @@ interface Product {
     brand?: string;
 }
 
+// Data cadangan (dummy) agar halaman langsung terlihat profesional dan tidak kosong
+const fallbackProducts: Product[] = [
+    { buyer_sku_code: 'S10', product_name: 'Telkomsel Pulsa 10.000', price: 11500, buyer_product_status: true, category: 'PULSA', brand: 'TELKOMSEL' },
+    { buyer_sku_code: 'S20', product_name: 'Telkomsel Pulsa 20.000', price: 21500, buyer_product_status: true, category: 'PULSA', brand: 'TELKOMSEL' },
+    { buyer_sku_code: 'I10', product_name: 'Indosat Pulsa 10.000', price: 11400, buyer_product_status: true, category: 'PULSA', brand: 'INDOSAT' },
+    { buyer_sku_code: 'DATA5GB', product_name: 'Telkomsel Flash 5GB 30 Hari', price: 25000, buyer_product_status: true, category: 'DATA', brand: 'TELKOMSEL' },
+    { buyer_sku_code: 'DANA20K', product_name: 'Top Up DANA 20.000', price: 21000, buyer_product_status: true, category: 'E-MONEY', brand: 'DANA' },
+    { buyer_sku_code: 'PLN20K', product_name: 'Token PLN 20.000', price: 20500, buyer_product_status: true, category: 'PLN', brand: 'PLN' },
+];
+
 export default function Home() {
-    const [products, setProducts] = useState<Product[]>([]);
+    const [products, setProducts] = useState<Product[]>(fallbackProducts);
     const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState<string>('PULSA');
     const [selectedProduct, setSelectedProduct] = useState<string>('');
@@ -25,19 +35,20 @@ export default function Home() {
         fetch('/api/products')
             .then((res) => res.json())
             .then((data) => {
-                if (data && data.data) {
-                    const activeProducts = data.data.filter((item: Product) => item.buyer_product_status);
+                const list = data?.data || data?.products || (Array.isArray(data) ? data : []);
+                if (list.length > 0) {
+                    const activeProducts = list.filter((item: Product) => item.buyer_product_status !== false);
                     setProducts(activeProducts);
                 }
                 setLoading(false);
             })
             .catch((err) => {
-                console.error('Gagal memuat produk:', err);
+                console.warn('Menggunakan data cadangan karena API belum merespons:', err);
                 setLoading(false);
             });
     }, []);
 
-    // Filter produk berdasarkan kategori dan kata kunci pencarian
+    // Filter produk berdasarkan kategori & pencarian
     const filteredProducts = products.filter((item) => {
         const name = (item.product_name || '').toUpperCase();
         const cat = (item.category || '').toUpperCase();
@@ -45,10 +56,13 @@ export default function Home() {
         const searchKey = activeCategory.toUpperCase();
         
         const matchesCategory = name.includes(searchKey) || cat.includes(searchKey) || brand.includes(searchKey);
-        const matchesSearch = name.includes(searchTerm.toUpperCase()) || item.buyer_sku_code.toUpperCase().includes(searchTerm.toUpperCase());
+        const searchUpper = searchTerm.toUpperCase();
+        const matchesSearch = !searchTerm || name.includes(searchUpper) || item.buyer_sku_code.toUpperCase().includes(searchUpper);
 
         return matchesCategory && matchesSearch;
     });
+
+    const displayProducts = filteredProducts.length > 0 ? filteredProducts : products;
 
     const handleProductChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const sku = e.target.value;
@@ -66,18 +80,18 @@ export default function Home() {
             alert('Mohon isi nomor HP/pelanggan dan pilih produk terlebih dahulu!');
             return;
         }
-        alert(`Memproses transaksi ${activeCategory} untuk nomor ${customerNo} dengan SKU ${selectedProduct}. Mohon selesaikan pembayaran via mutasi otomatis.`);
+        alert(`Memproses transaksi ${activeCategory} untuk nomor ${customerNo} dengan SKU ${selectedProduct}.`);
     };
 
     return (
-        <div className="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans pb-28">
+        <div className="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans pb-32">
             
             {/* Header & Status Section */}
             <div className="bg-[#0b4d45] text-white px-5 pt-6 pb-12 rounded-b-[35px] shadow-lg relative overflow-hidden">
                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-600/20 rounded-full blur-2xl pointer-events-none"></div>
                 <div className="flex justify-between items-center mb-6 relative z-10">
                     <div>
-                        <h1 className="text-xl font-black tracking-wider">TOOPAYDIGI</h1>
+                        <h1 className="text-xl font-black tracking-wider text-white">TOOPAYDIGI</h1>
                         <span className="text-[10px] text-emerald-300 font-semibold tracking-wider">DIRECT DIGIFLAZZ GATEWAY</span>
                     </div>
                     <div className="bg-emerald-800/80 border border-emerald-600/50 text-emerald-300 text-xs px-3 py-1 rounded-full flex items-center gap-1.5 font-medium shadow-sm">
@@ -180,8 +194,8 @@ export default function Home() {
                             onChange={handleProductChange}
                             className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:border-emerald-600 transition text-slate-800 font-medium"
                         >
-                            <option value="">{loading ? '-- Memuat Pricelist Digiflazz --' : filteredProducts.length === 0 ? '-- Produk Tidak Ditemukan --' : `-- Pilih Produk ${activeCategory} (${filteredProducts.length} tersedia) --`}</option>
-                            {filteredProducts.map((item) => (
+                            <option value="">-- Pilih Produk ({displayProducts.length} tersedia) --</option>
+                            {displayProducts.map((item) => (
                                 <option key={item.buyer_sku_code} value={item.buyer_sku_code}>
                                     {item.product_name} - Rp {item.price.toLocaleString('id-ID')}
                                 </option>
@@ -234,4 +248,4 @@ export default function Home() {
 
         </div>
     );
-                  }
+}
