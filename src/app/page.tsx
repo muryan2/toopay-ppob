@@ -11,12 +11,10 @@ interface Product {
     brand?: string;
 }
 
-// Data cadangan (dummy) agar halaman langsung terlihat profesional dan tidak kosong
 const fallbackProducts: Product[] = [
     { buyer_sku_code: 'S10', product_name: 'Telkomsel Pulsa 10.000', price: 11500, buyer_product_status: true, category: 'PULSA', brand: 'TELKOMSEL' },
-    { buyer_sku_code: 'S20', product_name: 'Telkomsel Pulsa 20.000', price: 21500, buyer_product_status: true, category: 'PULSA', brand: 'TELKOMSEL' },
     { buyer_sku_code: 'I10', product_name: 'Indosat Pulsa 10.000', price: 11400, buyer_product_status: true, category: 'PULSA', brand: 'INDOSAT' },
-    { buyer_sku_code: 'DATA5GB', product_name: 'Telkomsel Flash 5GB 30 Hari', price: 25000, buyer_product_status: true, category: 'DATA', brand: 'TELKOMSEL' },
+    { buyer_sku_code: 'DATA5GB', product_name: 'Telkomsel Flash 5GB', price: 25000, buyer_product_status: true, category: 'DATA', brand: 'TELKOMSEL' },
     { buyer_sku_code: 'DANA20K', product_name: 'Top Up DANA 20.000', price: 21000, buyer_product_status: true, category: 'E-MONEY', brand: 'DANA' },
     { buyer_sku_code: 'PLN20K', product_name: 'Token PLN 20.000', price: 20500, buyer_product_status: true, category: 'PLN', brand: 'PLN' },
 ];
@@ -29,6 +27,7 @@ export default function Home() {
     const [customerNo, setCustomerNo] = useState<string>('');
     const [productPrice, setProductPrice] = useState<number>(0);
     const [activeNav, setActiveNav] = useState<string>('Home');
+    const [showBalance, setShowBalance] = useState<boolean>(true);
     const [searchTerm, setSearchTerm] = useState<string>('');
 
     useEffect(() => {
@@ -42,13 +41,11 @@ export default function Home() {
                 }
                 setLoading(false);
             })
-            .catch((err) => {
-                console.warn('Menggunakan data cadangan karena API belum merespons:', err);
+            .catch(() => {
                 setLoading(false);
             });
     }, []);
 
-    // Filter produk berdasarkan kategori & pencarian
     const filteredProducts = products.filter((item) => {
         const name = (item.product_name || '').toUpperCase();
         const cat = (item.category || '').toUpperCase();
@@ -86,113 +83,147 @@ export default function Home() {
     return (
         <div className="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans pb-32">
             
-            {/* Header & Status Section */}
-            <div className="bg-[#0b4d45] text-white px-5 pt-6 pb-12 rounded-b-[35px] shadow-lg relative overflow-hidden">
-                <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-600/20 rounded-full blur-2xl pointer-events-none"></div>
-                <div className="flex justify-between items-center mb-6 relative z-10">
-                    <div>
-                        <h1 className="text-xl font-black tracking-wider text-white">TOOPAYDIGI</h1>
-                        <span className="text-[10px] text-emerald-300 font-semibold tracking-wider">DIRECT DIGIFLAZZ GATEWAY</span>
-                    </div>
-                    <div className="bg-emerald-800/80 border border-emerald-600/50 text-emerald-300 text-xs px-3 py-1 rounded-full flex items-center gap-1.5 font-medium shadow-sm">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> DANA Bisnis Active
+            {/* Header Utama Hijau Toska & Total Saldo */}
+            <div className="bg-[#084c44] text-white px-5 pt-6 pb-16 rounded-b-[40px] shadow-md relative">
+                <div className="flex justify-between items-center mb-4">
+                    <h1 className="text-xl font-black tracking-wider text-white">DIGIFLASH</h1>
+                    <div className="text-[11px] bg-emerald-800/60 px-2.5 py-1 rounded-full text-emerald-200 border border-emerald-700/50">
+                        DANA Bisnis Active
                     </div>
                 </div>
 
-                {/* Info Card Saldo / Webhook */}
-                <div className="bg-[#083b35] border border-emerald-700/40 rounded-2xl p-4 shadow-inner flex justify-between items-center relative z-10">
-                    <div>
-                        <p className="text-xs text-emerald-200 font-medium">Sistem Mutasi Otomatis</p>
-                        <h2 className="text-base font-bold text-white mt-0.5">Webhook Real-time Active</h2>
+                {/* Bagian Saldo */}
+                <div className="text-center my-3">
+                    <p className="text-xs text-emerald-200 font-medium">Total Saldo</p>
+                    <div className="flex justify-center items-center gap-2 mt-1">
+                        <span className="text-xl font-bold tracking-widest">
+                            {showBalance ? 'Rp 1.450.000' : 'Rp ••••••••'}
+                        </span>
+                        <button onClick={() => setShowBalance(!showBalance)} className="text-emerald-200 hover:text-white transition">
+                            <i className={`fa-solid ${showBalance ? 'fa-eye' : 'fa-eye-slash'} text-sm`}></i>
+                        </button>
                     </div>
-                    <div className="bg-emerald-900/80 p-2.5 rounded-xl text-emerald-300 shadow">
-                        <i className="fa-solid fa-bolt text-lg"></i>
+                </div>
+
+                {/* Tombol Aksi Cepat (Top Up, Transfer, Pembukuan) */}
+                <div className="grid grid-cols-3 gap-3 mt-6">
+                    <button className="bg-[#073f38] hover:bg-[#06332d] border border-emerald-700/30 py-2.5 px-2 rounded-2xl flex flex-col items-center justify-center transition shadow-sm">
+                        <i className="fa-solid fa-qrcode text-emerald-300 text-sm mb-1"></i>
+                        <span className="text-[11px] font-semibold text-emerald-100">Top Up</span>
+                    </button>
+                    <button className="bg-[#073f38] hover:bg-[#06332d] border border-emerald-700/30 py-2.5 px-2 rounded-2xl flex flex-col items-center justify-center transition shadow-sm">
+                        <i className="fa-solid fa-arrow-up-right-from-square text-emerald-300 text-sm mb-1"></i>
+                        <span className="text-[11px] font-semibold text-emerald-100">Transfer</span>
+                    </button>
+                    <div className="bg-[#073f38] border border-emerald-700/30 py-2.5 px-2 rounded-2xl flex flex-col items-center justify-center relative opacity-80">
+                        <span className="absolute -top-2 bg-amber-500 text-[9px] font-bold text-white px-1.5 py-0.2 rounded-full">Segera</span>
+                        <i className="fa-solid fa-book text-emerald-300 text-sm mb-1"></i>
+                        <span className="text-[11px] font-semibold text-emerald-100">Pembukuan</span>
                     </div>
                 </div>
             </div>
 
-            {/* Konten Utama */}
-            <main className="flex-1 max-w-md w-full mx-auto px-4 -mt-6 space-y-4 z-20">
+            {/* Konten Utama (Card Putih Melayang) */}
+            <main className="flex-1 max-w-md w-full mx-auto px-4 -mt-8 space-y-4 z-20">
                 
-                {/* Menu Kategori Layanan (Grid) */}
-                <div className="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-xl space-y-3">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Menu Pembelian & Layanan</h3>
-                    <div className="grid grid-cols-4 gap-2.5 text-center">
-                        {[
-                            { name: 'PULSA', icon: 'fa-mobile-screen', color: 'text-blue-600 bg-blue-50' },
-                            { name: 'DATA', icon: 'fa-wifi', color: 'text-emerald-600 bg-emerald-50' },
-                            { name: 'E-MONEY', icon: 'fa-wallet', color: 'text-purple-600 bg-purple-50' },
-                            { name: 'GAME', icon: 'fa-gamepad', color: 'text-amber-600 bg-amber-50' },
-                            { name: 'PLN', icon: 'fa-bolt', color: 'text-yellow-600 bg-yellow-50' },
-                            { name: 'VOUCHER', icon: 'fa-ticket', color: 'text-rose-600 bg-rose-50' },
-                            { name: 'STREAMING', icon: 'fa-tv', color: 'text-indigo-600 bg-indigo-50' },
-                            { name: 'LAINNYA', icon: 'fa-layer-group', color: 'text-slate-600 bg-slate-100' },
-                        ].map((menu) => (
-                            <button
-                                key={menu.name}
-                                onClick={() => {
-                                    setActiveCategory(menu.name);
-                                    setSelectedProduct('');
-                                    setProductPrice(0);
-                                }}
-                                className={`flex flex-col items-center justify-center p-2.5 rounded-2xl transition border ${
-                                    activeCategory === menu.name
-                                        ? 'border-emerald-600 bg-emerald-50/80 shadow-md scale-[1.02]'
-                                        : 'border-slate-100 bg-white hover:bg-slate-50'
-                                }`}
+                {/* Hot Promo Section */}
+                <div className="bg-white border border-slate-200/80 rounded-3xl p-4 shadow-lg space-y-3">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">Hot Promo</h3>
+                        <button className="text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 flex items-center gap-1">
+                            <i className="fa-regular fa-heart text-[10px]"></i> Tambah Favorit
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 text-center">
+                        {['INDOSAT', 'TELKOMSEL', 'XL', 'TRI'].map((op) => (
+                            <button 
+                                key={op} 
+                                onClick={() => setActiveCategory('PULSA')}
+                                className="bg-slate-50 hover:bg-emerald-50/50 border border-slate-100 p-2.5 rounded-2xl flex flex-col items-center transition"
                             >
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm mb-1 shadow-sm ${menu.color}`}>
-                                    <i className={`fa-solid ${menu.icon}`}></i>
+                                <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] mb-1 shadow-sm">
+                                    {op.substring(0, 3)}
                                 </div>
-                                <span className="text-[10px] font-bold text-slate-700 leading-tight">{menu.name}</span>
+                                <span className="text-[10px] font-bold text-slate-700 truncate w-full">{op}</span>
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {/* Formulir Transaksi Utama */}
+                {/* Menu Pembelian & Layanan */}
+                <div className="bg-white border border-slate-200/80 rounded-3xl p-4 shadow-lg space-y-3">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">Pembelian</h3>
+                    <div className="grid grid-cols-4 gap-2.5 text-center">
+                        {[
+                            { name: 'PULSA', icon: 'fa-mobile-screen' },
+                            { name: 'DATA', icon: 'fa-wifi' },
+                            { name: 'E-MONEY', icon: 'fa-wallet' },
+                            { name: 'TELP & SMS', icon: 'fa-phone' },
+                            { name: 'PLN', icon: 'fa-bolt' },
+                            { name: 'GAME', icon: 'fa-gamepad' },
+                            { name: 'VOUCHER', icon: 'fa-ticket' },
+                            { name: 'LAINNYA', icon: 'fa-layer-group' },
+                        ].map((menu) => (
+                            <button
+                                key={menu.name}
+                                onClick={() => {
+                                    setActiveCategory(menu.name.includes('PULSA') ? 'PULSA' : menu.name);
+                                    setSelectedProduct('');
+                                    setProductPrice(0);
+                                }}
+                                className={`flex flex-col items-center justify-center p-2.5 rounded-2xl transition border ${
+                                    activeCategory === menu.name
+                                        ? 'border-emerald-600 bg-emerald-50 shadow-sm'
+                                        : 'border-slate-100 bg-slate-50/60 hover:bg-slate-100'
+                                }`}
+                            >
+                                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm mb-1 shadow-sm">
+                                    <i className={`fa-solid ${menu.icon}`}></i>
+                                </div>
+                                <span className="text-[9px] font-bold text-slate-700 leading-tight">{menu.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Formulir Transaksi & Eksekusi */}
                 <div className="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-xl space-y-4">
                     <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                        <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Formulir Transaksi</h2>
-                        <span className="text-xs text-emerald-700 font-extrabold bg-emerald-100/80 px-3 py-1 rounded-full">{activeCategory}</span>
+                        <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wide">Formulir Transaksi</h2>
+                        <span className="text-[10px] text-emerald-700 font-extrabold bg-emerald-100 px-2.5 py-0.5 rounded-full">{activeCategory}</span>
                     </div>
                     
-                    {/* Input Nomor HP / Pelanggan */}
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-500">Nomor Tujuan / Pelanggan</label>
-                        <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                                <i className="fa-solid fa-phone text-xs"></i>
-                            </span>
-                            <input 
-                                type="tel" 
-                                value={customerNo}
-                                onChange={(e) => setCustomerNo(e.target.value)}
-                                placeholder="Contoh: 08123456789" 
-                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 pl-10 text-sm focus:outline-none focus:border-emerald-600 transition text-slate-800 font-medium"
-                            />
-                        </div>
+                    {/* Input Nomor Tujuan */}
+                    <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-slate-500">Nomor Tujuan / Pelanggan</label>
+                        <input 
+                            type="tel" 
+                            value={customerNo}
+                            onChange={(e) => setCustomerNo(e.target.value)}
+                            placeholder="Contoh: 08123456789" 
+                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-600 transition text-slate-800 font-medium"
+                        />
                     </div>
 
-                    {/* Filter Pencarian Produk Cepat */}
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-500">Cari Produk / Nominal</label>
+                    {/* Filter Pencarian Cepat */}
+                    <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-slate-500">Cari Produk / Nominal</label>
                         <input 
                             type="text" 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Ketik nama produk (misal: Telkomsel, 10k)..." 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-600 transition text-slate-700"
+                            placeholder="Ketik nama produk..." 
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-emerald-600 transition text-slate-700"
                         />
                     </div>
 
                     {/* Pilihan Produk Digiflazz */}
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-500">Pilih Nominal & Layanan</label>
+                    <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-slate-500">Pilih Nominal & Layanan</label>
                         <select 
                             value={selectedProduct}
                             onChange={handleProductChange}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:border-emerald-600 transition text-slate-800 font-medium"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-600 transition text-slate-800 font-medium"
                         >
                             <option value="">-- Pilih Produk ({displayProducts.length} tersedia) --</option>
                             {displayProducts.map((item) => (
@@ -203,29 +234,27 @@ export default function Home() {
                         </select>
                     </div>
 
-                    {/* Rincian Harga Dinamis */}
+                    {/* Rincian Harga */}
                     {productPrice > 0 && (
-                        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-4 text-xs space-y-1 shadow-sm">
-                            <div className="flex justify-between text-slate-600">
-                                <span>Total Tagihan:</span>
-                                <span className="font-black text-emerald-700 text-base">Rp {productPrice.toLocaleString('id-ID')}</span>
-                            </div>
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs flex justify-between items-center">
+                            <span className="text-slate-600">Total Tagihan:</span>
+                            <span className="font-black text-emerald-700 text-sm">Rp {productPrice.toLocaleString('id-ID')}</span>
                         </div>
                     )}
 
                     {/* Tombol Eksekusi */}
                     <button 
                         onClick={handleTransaction}
-                        className="w-full bg-gradient-to-r from-[#0b4d45] to-[#083b35] hover:from-[#093d37] hover:to-[#062d29] text-white font-bold py-4 px-4 rounded-2xl shadow-lg shadow-emerald-900/30 transition flex items-center justify-center gap-2 text-sm mt-2"
+                        className="w-full bg-gradient-to-r from-[#084c44] to-[#06332d] hover:opacity-95 text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-xs"
                     >
                         <span>Proses Transaksi Sekarang</span>
-                        <i className="fa-solid fa-arrow-right text-xs"></i>
+                        <i className="fa-solid fa-arrow-right text-[10px]"></i>
                     </button>
                 </div>
             </main>
 
-            {/* Bottom Navigation Bar Mengapung */}
-            <nav className="fixed bottom-3 left-4 right-4 max-w-md mx-auto bg-[#0b4d45] text-white rounded-full shadow-2xl py-2.5 px-6 flex justify-between items-center z-50 border border-emerald-600/30 backdrop-blur-md">
+            {/* Bottom Navigation Bar Oranye Persis Referensi */}
+            <nav className="fixed bottom-3 left-4 right-4 max-w-md mx-auto bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-full shadow-2xl py-2 px-6 flex justify-between items-center z-50 border border-orange-400/30">
                 {[
                     { name: 'Home', icon: 'fa-house' },
                     { name: 'Notifikasi', icon: 'fa-bell' },
@@ -236,16 +265,16 @@ export default function Home() {
                     <button
                         key={nav.name}
                         onClick={() => setActiveNav(nav.name)}
-                        className={`flex flex-col items-center justify-center transition ${
-                            activeNav === nav.name ? 'text-amber-400 scale-105 font-bold' : 'text-emerald-200 hover:text-white'
+                        className={`flex flex-col items-center justify-center transition px-2 py-1 ${
+                            activeNav === nav.name ? 'text-white scale-110 font-bold' : 'text-orange-100 hover:text-white opacity-80'
                         }`}
                     >
-                        <i className={`fa-solid ${nav.icon} text-base mb-0.5`}></i>
-                        <span className="text-[10px]">{nav.name}</span>
+                        <i className={`fa-solid ${nav.icon} text-sm mb-0.5`}></i>
+                        <span className="text-[9px] tracking-tight">{nav.name}</span>
                     </button>
                 ))}
             </nav>
 
         </div>
     );
-}
+            }
